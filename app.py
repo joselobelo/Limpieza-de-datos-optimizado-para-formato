@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Función Principal de Extracción y Formateo (CON LÓGICA MEJORADA) ---
+# --- Función Principal de Extracción y Formateo (CON LA CORRECCIÓN FINAL) ---
 def extract_and_format(df, phone_cols, name_cols):
     """
     Recorre el DataFrame, extrae el primer teléfono y el primer NOMBRE REAL de cada fila,
@@ -27,31 +27,28 @@ def extract_and_format(df, phone_cols, name_cols):
         for col in phone_cols:
             phones = phone_regex.findall(str(row.get(col, '')))
             if phones:
-                found_phone = phones
+                # --- ¡ESTA ES LA CORRECCIÓN! ---
+                # Tomamos el primer elemento [0] de la lista de resultados
+                found_phone = phones[0]
                 break
         
         if not found_phone:
             continue
 
-        # 2. Buscar el primer NOMBRE VÁLIDO en la misma fila (LÓGICA MEJORADA)
+        # 2. Buscar el primer NOMBRE VÁLIDO en la misma fila
         for col in name_cols:
             name_raw = str(row.get(col, ''))
-            # Limpiar y dividir en palabras
             name_clean = re.sub(r'[^a-zA-Z\s]', '', name_raw).strip()
             words = name_clean.split()
             
-            # Iterar sobre las palabras para encontrar la primera que sea un nombre plausible
             for word in words:
-                # Criterio: La palabra debe tener más de 2 letras para ser considerada un nombre.
-                # Esto descarta iniciales y "basura" como 'Ac', 'Yo', 'df', 'Mb'.
                 if len(word) > 2:
                     found_name = word.capitalize()
-                    break # Encontramos el primer nombre válido, salimos del bucle de palabras
+                    break
             
             if found_name:
-                break # Encontramos un nombre en esta columna, salimos del bucle de columnas
+                break
 
-        # Si no se encontró un nombre válido, usamos un valor por defecto
         if not found_name:
             found_name = "Contacto"
 
@@ -76,19 +73,16 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
-    # Leer los dataframes asegurando que todo se trate como texto para evitar errores de tipo
     df = pd.concat([pd.read_excel(f, dtype=str) for f in uploaded_files], ignore_index=True)
     st.success(f"✅ ¡Carga completa! Se han unido {len(uploaded_files)} archivos. Total de filas: {len(df)}.")
     
     st.header("1. Configurar Búsqueda")
     all_cols = df.columns.tolist()
 
-    # Selección de columnas de NOMBRE
     name_keywords = ['nombre', 'name', 'tutor', 'student']
     default_name_cols = [c for c in all_cols if any(k in c.lower() for k in name_keywords)]
     name_columns = st.multiselect("¿Columnas que contienen Nombres?", options=all_cols, default=default_name_cols)
 
-    # Selección de columnas de TELÉFONO
     phone_keywords = ['tel', 'phone', 'grupo', 'email', 'teléfono']
     default_phone_cols = [c for c in all_cols if any(k in c.lower() for k in phone_keywords)]
     phone_columns = st.multiselect("¿Columnas que contienen Teléfonos?", options=all_cols, default=default_phone_cols)
