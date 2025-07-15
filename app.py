@@ -27,7 +27,7 @@ def extract_and_format(df, phone_cols, name_cols):
         for col in phone_cols:
             phones = phone_regex.findall(str(row.get(col, '')))
             if phones:
-                found_phone = phones[0]
+                found_phone = phones
                 break
         
         if not found_phone:
@@ -76,6 +76,7 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
+    # Leer los dataframes asegurando que todo se trate como texto para evitar errores de tipo
     df = pd.concat([pd.read_excel(f, dtype=str) for f in uploaded_files], ignore_index=True)
     st.success(f"✅ ¡Carga completa! Se han unido {len(uploaded_files)} archivos. Total de filas: {len(df)}.")
     
@@ -111,6 +112,4 @@ if uploaded_files:
                 data=output.getvalue(),
                 file_name="BASE_APPP.xlsx",
                 mime="application/vnd.ms-excel"
-            )```
-
-Con este último cambio, el software ahora es mucho más robusto y debería manejar la suciedad de tus datos de entrada de manera mucho más efectiva, dándote la salida limpia y correcta que necesitas.
+            )
